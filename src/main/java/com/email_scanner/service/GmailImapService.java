@@ -18,6 +18,12 @@ public class GmailImapService {
     private static final String IMAP_HOST = "imap.gmail.com";
     private static final String IMAP_PORT = "993";
 
+    private final TrackingCodeService trackingCodeService;
+
+    public GmailImapService(TrackingCodeService trackingCodeService){
+        this.trackingCodeService = trackingCodeService;
+    }
+
     public void readInbox(String email, String appPassword){
         try{
             Properties props = new Properties();
@@ -35,7 +41,7 @@ public class GmailImapService {
             inbox.open(Folder.READ_ONLY);
 
             Message[] messages = inbox.getMessages();
-            System.out.println("Total de mensagens na caixa de entrada: " + messages.length);
+            System.out.println("Códigos encontrados: ");
 
             for (int i = 0; i < Math.min(messages.length, 10); i++){
                 Message msg = messages[messages.length - 1 - i];
@@ -46,12 +52,13 @@ public class GmailImapService {
                 List<String> trackingCodes = extractTrackingCodes(body);
                 trackingCodes.forEach(System.out::println);
 
+                trackingCodeService.save(trackingCodes, email);
+
             }
             inbox.close(false);
             store.close();
         } catch (Exception e){
-            System.out.println("Erro ao acessar Gmail via IMAP");
-            e.printStackTrace();
+            System.out.println("Erro ao acessar Gmail via IMAP" + e);
         }
     }
 

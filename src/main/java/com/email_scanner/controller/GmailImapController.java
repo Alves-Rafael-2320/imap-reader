@@ -21,6 +21,6 @@ public class GmailImapController {
     @PostMapping("/read")
     public String readInbox(@RequestParam String email, @RequestParam String appPassword){
         gmailImapService.readInbox(email, appPassword);
-        return "Leitura concluida.";
+        return "Varredura da caixa de entrada concluída com persistência dos códigos de rastreio.";
     }
 }
