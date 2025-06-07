@@ -36,6 +36,10 @@ public class GmailImapService {
             for (int i = 0; i < Math.min(messages.length, 10); i++){
                 Message msg = messages[messages.length - 1 - i];
                 System.out.println("Assunto: " + msg.getSubject());
+
+                Object content = msg.getContent();
+                String body = extractTextFromContent(content);
+                System.out.println("Conteúdo:/n" + body);
             }
             inbox.close(false);
             store.close();
@@ -43,5 +47,21 @@ public class GmailImapService {
             System.out.println("Erro ao acessar Gmail via IMAP");
             e.printStackTrace();
         }
+    }
+
+    private String extractTextFromContent(Object content) throws Exception{
+        if (content instanceof String){
+            return (String) content;
+        } else if (content instanceof jakarta.mail.Multipart){
+            jakarta.mail.Multipart multipart = (jakarta.mail.Multipart) content;
+            for (int i = 0; i < multipart.getCount(); i++){
+                jakarta.mail.BodyPart part = multipart.getBodyPart(i);
+                if (part.getContentType().toLowerCase().startsWith("text/plain")){
+                return (String) part.getContent();
+                }
+            }
+            return multipart.getBodyPart(0).getContent().toString();
+        }
+        return "conteúdo não suportado";
     }
 }
