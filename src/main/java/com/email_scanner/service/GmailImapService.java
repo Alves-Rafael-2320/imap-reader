@@ -6,7 +6,11 @@ import jakarta.mail.Session;
 import jakarta.mail.Store;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class GmailImapService {
@@ -35,11 +39,13 @@ public class GmailImapService {
 
             for (int i = 0; i < Math.min(messages.length, 10); i++){
                 Message msg = messages[messages.length - 1 - i];
-                System.out.println("Assunto: " + msg.getSubject());
 
                 Object content = msg.getContent();
                 String body = extractTextFromContent(content);
-                System.out.println("Conteúdo:/n" + body);
+
+                List<String> trackingCodes = extractTrackingCodes(body);
+                trackingCodes.forEach(System.out::println);
+
             }
             inbox.close(false);
             store.close();
@@ -63,5 +69,19 @@ public class GmailImapService {
             return multipart.getBodyPart(0).getContent().toString();
         }
         return "conteúdo não suportado";
+    }
+
+    private List<String> extractTrackingCodes(String content){
+
+        List<String> foundCodes = new ArrayList<>();
+
+        Pattern pattern = Pattern.compile("\\b(127|577|957)\\d{8}\\b");
+        Matcher matcher = pattern.matcher(content);
+
+
+        while (matcher.find()){
+            foundCodes.add(matcher.group());
+        }
+        return foundCodes;
     }
 }
